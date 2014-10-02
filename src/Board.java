@@ -149,8 +149,8 @@ public class Board{
                 buttonBoard[i][k].addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-
                         final JFrame numbersFrame = new JFrame();
+
                         numbersFrame.setSize(275,275);
                         numbersFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                         numbersFrame.setLocationRelativeTo(null);
@@ -179,6 +179,9 @@ public class Board{
                                             board[iindex][kindex] = buttonContent;
                                             buttonBoard[iindex][kindex].setText("" + buttonContent);
                                             numbersFrame.dispose();
+                                            if(isGameOver()){
+                                                JOptionPane.showMessageDialog(null, "Sudoko game complete!", "Success!", JOptionPane.INFORMATION_MESSAGE);
+                                            };
                                         }
                                     }
                                     else{
@@ -368,9 +371,5 @@ public class Board{
 
     public int getHeight(){
         return height;
-    }
-
-    public boolean isGameover(){
-        return gameover;
     }
 }
