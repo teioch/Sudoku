@@ -1,5 +1,3 @@
-import com.sun.org.apache.xpath.internal.SourceTree;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,7 +13,8 @@ public class Board{
     private int[][] board;
     private boolean gameover;
 
-    private final String SAVE_FILE = "src/resources/savefiles/01.txt";
+    private final String SAVE_GAMES = "src/resources/savegames/";
+    private final String NEW_GAMES = "src/resources/newgames/";
     private final String MEDIA_LOCATION = "src/resources/media/";
 
     /* GUI objects */
@@ -53,8 +52,6 @@ public class Board{
         buildGamePanel();
         setMenuButtons();
 
-        loadGame();
-
         mainPanel.add(gamePanelOutter);
         mainPanel.add(rightMenuPanel);
 
@@ -63,10 +60,10 @@ public class Board{
         frame.setVisible(true);
     }
 
-    private void loadGame() {
+    private void loadGame(String filePath) {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new FileReader(SAVE_FILE));
+            reader = new BufferedReader(new FileReader(filePath));
         } catch(FileNotFoundException e){
             System.out.println("ERROR: File could not be found: " + e.getMessage());
         }
@@ -149,55 +146,68 @@ public class Board{
                 buttonBoard[i][k].addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        final JFrame numbersFrame = new JFrame();
-
-                        numbersFrame.setSize(275,275);
-                        numbersFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                        numbersFrame.setLocationRelativeTo(null);
-
-                        JPanel selectDigit = new JPanel(new GridLayout(3,3));
-                        JButton[] digitButtons = new JButton[9];
-
-                        for(int j = 0; j < 9; j++){
-                            digitButtons[j] = new JButton(Integer.toString(j + 1));
-                            final JButton digitButton = digitButtons[j];
-                            digitButtons[j].addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    int buttonContent = Integer.parseInt(digitButton.getText());
-                                    if(buttonContent > 0 && buttonContent < 10){
-                                        if(intExistsHorizontally(buttonContent, iindex)){
-                                            JOptionPane.showMessageDialog(null, "Number already exists horizontally in row " + (iindex+1), "Invalid input", JOptionPane.ERROR_MESSAGE);
-                                        }
-                                        else if(intExistsVertically(buttonContent, kindex)){
-                                            JOptionPane.showMessageDialog(null, "Number already exists vertically in column " + (kindex + 1), "Invalid input", JOptionPane.ERROR_MESSAGE);
-                                        }
-                                        else if(intExistsInBox(buttonContent, iindex, kindex)){
-                                            JOptionPane.showMessageDialog(null, "Number already exists in this quadrant", "Invalid input", JOptionPane.ERROR_MESSAGE);
-                                        }
-                                        else{
-                                            board[iindex][kindex] = buttonContent;
-                                            buttonBoard[iindex][kindex].setText("" + buttonContent);
-                                            numbersFrame.dispose();
-                                            if(isGameOver()){
-                                                JOptionPane.showMessageDialog(null, "Sudoko game complete!", "Success!", JOptionPane.INFORMATION_MESSAGE);
-                                            };
-                                        }
-                                    }
-                                    else{
-                                        JOptionPane.showMessageDialog(null, "Number must be in the range of 1-9", "Invalid input", JOptionPane.ERROR_MESSAGE);
-                                    }
-                                }
-                            });
-                            selectDigit.add(digitButtons[j]);
-                        }
-                        numbersFrame.add(selectDigit);
-                        numbersFrame.setVisible(true);
+                        createInputPanel(iindex, kindex);
                     }
                 });
 
                 findQuadrant(i, k, buttonBoard[i][k]);
             }
+        }
+    }
+
+    private void createInputPanel(final int iindex, final int kindex) {
+        final JFrame numbersFrame = new JFrame();
+
+        numbersFrame.setSize(275,275);
+        numbersFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        numbersFrame.setLocationRelativeTo(null);
+
+        JPanel selectDigit = new JPanel(new GridLayout(3,3));
+        JButton[] digitButtons = new JButton[9];
+
+        for(int j = 0; j < 9; j++){
+            digitButtons[j] = new JButton(Integer.toString(j + 1));
+            final JButton digitButton = digitButtons[j];
+            digitButtons[j].addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int buttonContent = Integer.parseInt(digitButton.getText());
+                    if(buttonContent > 0 && buttonContent < 10){
+                        if(isInputValid(buttonContent, iindex, kindex)){
+                            board[iindex][kindex] = buttonContent;
+                            buttonBoard[iindex][kindex].setText("" + buttonContent);
+                            numbersFrame.dispose();
+                            if(isGameOver()){
+                                JOptionPane.showMessageDialog(null, "Sudoko game complete!", "Success!", JOptionPane.INFORMATION_MESSAGE);
+                            };
+                        }
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "Number must be in the range of 1-9", "Invalid input", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+            selectDigit.add(digitButtons[j]);
+        }
+        numbersFrame.add(selectDigit);
+        numbersFrame.setVisible(true);
+    }
+
+    private boolean isInputValid(int buttonContent, int iindex, int kindex){
+        if(intExistsHorizontally(buttonContent, iindex)){
+            JOptionPane.showMessageDialog(null, "Number already exists horizontally in row " + (iindex+1), "Invalid input", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        else if(intExistsVertically(buttonContent, kindex)){
+            JOptionPane.showMessageDialog(null, "Number already exists vertically in column " + (kindex + 1), "Invalid input", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        else if(intExistsInBox(buttonContent, iindex, kindex)){
+            JOptionPane.showMessageDialog(null, "Number already exists in this quadrant", "Invalid input", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        else{
+            return true;
         }
     }
 
@@ -260,7 +270,7 @@ public class Board{
         openButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                File[] files = new File(System.getProperty(SAVE_GAMES)).listFiles();
             }
         });
         rightMenuPanel.add(openButton);
